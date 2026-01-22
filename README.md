@@ -1,4 +1,129 @@
 # Salesforce CausalAI Library
+# Salesforce CausalAI Library
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Conda](https://img.shields.io/badge/Conda-44A833?style=for-the-badge&logo=anaconda&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)
+![Ray](https://img.shields.io/badge/Ray-F76C03?style=for-the-badge&logo=ray&logoColor=white)
+![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+---
+
+## Installation and Quick Start
+
+```bash
+# Create conda environment and install the library
+conda create -n causal_ai_env python=3.9
+conda activate causal_ai_env
+git clone https://github.com/salesforce/causalai.git
+cd causalai
+pip install .
+
+# Run example causal discovery and inference code (Python inline script)
+python -c "
+from causalai.models.tabular.pc import PC
+from causalai.models.common.CI_tests.partial_correlation import PartialCorrelation
+from causalai.data.data_generator import DataGenerator
+from causalai.models.common.prior_knowledge import PriorKnowledge
+from causalai.data.tabular import TabularData
+from causalai.data.transforms.time_series import StandardizeTransform
+from causalai.models.tabular.causal_inference import CausalInference
+from sklearn.linear_model import LinearRegression
+import numpy as np
+from causalai.misc.misc import get_precision_recall
+
+# Define SEM for causal discovery
+fn = lambda x: x
+coef = 0.1
+sem = {
+    'a': [], 
+    'b': [('a', coef, fn), ('f', coef, fn)], 
+    'c': [('b', coef, fn), ('f', coef, fn)],
+    'd': [('b', coef, fn), ('g', coef, fn)],
+    'e': [('f', coef, fn)], 
+    'f': [],
+    'g': [],
+}
+T = 5000
+data_array, var_names, graph_gt = DataGenerator(sem, T=T, seed=0, discrete=False)
+
+standardizer = StandardizeTransform()
+standardizer.fit(data_array)
+data_trans = standardizer.transform(data_array)
+data_obj = TabularData(data_trans, var_names=var_names)
+
+prior_knowledge = PriorKnowledge(forbidden_links={'a': ['b']})
+ci_test = PartialCorrelation()
+pc = PC(data=data_obj, prior_knowledge=prior_knowledge, CI_test=ci_test, use_multiprocessing=False)
+result = pc.run(pvalue_thres=0.01, max_condition_set_size=2)
+
+graph_est = {node: [] for node in result.keys()}
+for node, res in result.items():
+    graph_est[node].extend(res['parents'])
+    print(f'{node}: {res[\"parents\"]}')
+
+precision, recall, f1_score = get_precision_recall(graph_est, graph_gt)
+print(f'Precision: {precision:.2f}, Recall: {recall:.2f}, F1 Score: {f1_score:.2f}')
+
+# SEM for causal inference
+coef = 0.5
+sem = {
+    'a': [], 
+    'b': [('a', coef, fn), ('f', coef, fn)], 
+    'c': [('b', coef, fn), ('f', coef, fn)],
+    'd': [('b', coef, fn), ('g', coef, fn)],
+    'e': [('f', coef, fn)], 
+    'f': [],
+    'g': [],
+}
+data, var_names, graph_gt = DataGenerator(sem, T=T, seed=0, discrete=False)
+
+def create_treatment(name, treat_val, control_val):
+    return dict(var_name=name, treatment_value=treat_val, control_value=control_val)
+
+t1, t2 = 'a', 'b'
+target = 'c'
+target_index = var_names.index(target)
+
+intervention1_treat = 100 * np.ones(T)
+intervention2_treat = 10 * np.ones(T)
+intervention1_control = 0 * np.ones(T)
+intervention2_control = -2 * np.ones(T)
+
+treatments = [
+    create_treatment(t1, intervention1_treat, intervention1_control),
+    create_treatment(t2, intervention2_treat, intervention2_control),
+]
+
+causal_inference = CausalInference(data, var_names, graph_gt, LinearRegression, discrete=False, method='causal_path')
+ate, _, _ = causal_inference.ate(target, treatments)
+print(f'Estimated ATE (causal_path): {ate:.2f}')
+
+causal_inference = CausalInference(data, var_names, graph_gt, LinearRegression, discrete=False, method='backdoor')
+ate, _, _ = causal_inference.ate(target, treatments)
+print(f'Estimated ATE (backdoor): {ate:.2f}')
+
+intervention_data1, _, _ = DataGenerator(sem, T=T, seed=0, intervention={t1: intervention1_treat, t2: intervention2_treat})
+intervention_data2, _, _ = DataGenerator(sem, T=T, seed=0, intervention={t1: intervention1_control, t2: intervention2_control})
+true_ate = (intervention_data1[:, target_index] - intervention_data2[:, target_index]).mean()
+print(f'True ATE: {true_ate:.2f}')
+"
+
+# Launch and terminate UI
+./launch_ui.sh
+./exit_ui.sh
+
+# BibTeX citation
+echo '@article{salesforce_causalai23,
+  title={Salesforce CausalAI Library: A Fast and Scalable framework for Causal Analysis of Time Series and Tabular Data},
+  author={Arpit, Devansh and Fernandez, Matthew and Feigenbaum, Itai and Yao, Weiran and Liu, Chenghao and Yang, Wenzhuo and Josel, Paul and Heinecke, Shelby and Hu, Eric and Wang, Huan and Hoi, Stephen and Xiong, Caiming and Zhang, Kun and Niebles, Juan Carlos},
+  year={2023},
+  eprint={arXiv preprint arXiv:2301.10859},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG}
+}' > citation.bib
+
 
 🔥 **Latest Updates** 🔥  
 - Introduced GES, LINGAM, and GIN algorithms for causal discovery on tabular data  
