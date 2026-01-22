@@ -10,6 +10,7 @@
 ---
 
 ## Overview
+![Image Alt](https://github.com/salesforce/causalai/blob/e03c9d8e0afcdf8f3b9681f6140051327eaa3a71/assets/causalai_pipeline.png)
 
 Salesforce CausalAI is an open-source Python library designed for causal analysis using observational data. It supports both causal discovery and inference across tabular and time series datasets of various types — discrete, continuous, and mixed. The library offers a flexible set of algorithms that can capture both linear and non-linear causal relationships, and leverages multiprocessing to improve performance on large datasets. A synthetic data generator helps users create controlled datasets with known causal structures to evaluate algorithms effectively. Furthermore, CausalAI includes benchmarking tools to compare different algorithms across datasets with varying complexity and challenges. For ease of use, a code-free user interface allows users to perform causal analyses without writing any code.
 
@@ -26,6 +27,8 @@ Traditional causal analysis with observational data presents several challenges:
 - Providing accessible interfaces for users unfamiliar with coding  
 
 CausalAI addresses these pain points by providing a unified, scalable framework with flexible algorithms, synthetic data support, benchmarking modules, and a user-friendly UI.
+![Image Alt](https://github.com/salesforce/causalai/blob/e03c9d8e0afcdf8f3b9681f6140051327eaa3a71/assets/causalai_comparison.png)
+
 
 ---
 
@@ -48,6 +51,7 @@ CausalAI offers the following:
 ## Causal Discovery
 
 CausalAI implements several causal discovery algorithms with different assumptions about hidden variables, data types, and noise models. For continuous data, algorithms like PC and Grow-Shrink support both linear and non-linear relationships depending on the conditional independence tests used, while other algorithms support linear relationships only.
+![Image Alt](https://github.com/salesforce/causalai/blob/e03c9d8e0afcdf8f3b9681f6140051327eaa3a71/assets/cd_algos.png)
 
 ---
 
